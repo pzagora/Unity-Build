@@ -1,0 +1,93 @@
+# Copy to <package repo>/.github/workflows/publish.yml. Pushing a tag equal to package.json's version
+# (e.g. `2.1.2`, or `v2.1.2`) signs that version with the Unity organization, publishes it to the registry, and creates
+# a GitHub release for the tag (notes from that version's CHANGELOG.md section, signed .tgz attached).
+# release.yml also calls it (workflow_call) after auto-tagging a version bump on main.
+#
+# Secrets: UPM_PUBLISH_TOKEN (registry publish token), and for signing a Unity Cloud service account with the
+# "Package Manager Package Signer" role: UPM_SERVICE_ACCOUNT_KEY_ID, UPM_SERVICE_ACCOUNT_KEY_SECRET, UPM_ORG_ID.
+# The UPM_PUBLISH_REGISTRY variable overrides where it publishes (the workers.dev address, since zagora.dev's Bot Fight
+# Mode challenges GitHub Actions runners). Consumers always install from https://upm.zagora.dev.
+
+name: Publish
+
+on:
+  push:
+    tags: ['*']
+  workflow_call:
+    inputs:
+      ref:
+        description: Tag to publish
+        type: string
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  UPM_CLI_VERSION: v9.36.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: ${{ vars.UPM_PUBLISH_REGISTRY || 'https://upm.zagora.dev/' }}
+
+      - name: Check tag matches package.json version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="${INPUT_REF:-$GITHUB_REF_NAME}"
+          if [ "$VERSION" != "${TAG_NAME#v}" ]; then
+            echo "::error::Tag $TAG_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+
+      - name: Install Unity Package Manager CLI
+        run: |
+          curl -fsSL https://cdn.packages.unity.com/upm-cli/install.sh | bash -s -- "$UPM_CLI_VERSION"
+          echo "$HOME/.upm/bin" >> "$GITHUB_PATH"
+
+      - name: Pack and sign
+        run: |
+          rm -rf .github
+          upm pack . --organization-id "$UPM_ORG_ID" --destination "$RUNNER_TEMP/package"
+          TARBALL=$(ls "$RUNNER_TEMP"/package/*.tgz)
+          if ! tar -tzf "$TARBALL" | grep -qx 'package/.attestation.p7m'; then
+            echo "::error::$TARBALL has no package/.attestation.p7m signature"
+            exit 1
+          fi
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+        env:
+          UPM_SERVICE_ACCOUNT_KEY_ID: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_ID }}
+          UPM_SERVICE_ACCOUNT_KEY_SECRET: ${{ secrets.UPM_SERVICE_ACCOUNT_KEY_SECRET }}
+          UPM_ORG_ID: ${{ secrets.UPM_ORG_ID }}
+
+      - name: Publish
+        run: npm publish "$TARBALL"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.UPM_PUBLISH_TOKEN }}
+
+      - name: Create GitHub release
+        run: |
+          TAG_NAME="${INPUT_REF:-$GITHUB_REF_NAME}"
+          VERSION="${TAG_NAME#v}"
+          NOTES="$RUNNER_TEMP/release-notes.md"
+          awk -v heading="## [$VERSION]" '{ sub(/\r$/, "") } $0 == heading { found = 1; next } found && /^## \[/ { exit } found' CHANGELOG.md > "$NOTES"
+          [ -s "$NOTES" ] || echo "Published $VERSION." > "$NOTES"
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" "$TARBALL" --clobber
+          else
+            gh release create "$TAG_NAME" "$TARBALL" --verify-tag --title "$VERSION" --notes-file "$NOTES"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          INPUT_REF: ${{ inputs.ref }}

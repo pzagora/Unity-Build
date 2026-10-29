@@ -1,0 +1,24 @@
+{
+  "name": "com.zagoradev.unity.build",
+  "displayName": "Unity Build (zagora.dev)",
+  "version": "1.0.0",
+  "unity": "6000.0",
+  "description": "Command-line player and Addressables builds for CI: output path, build number, bundle version, development builds, managed code variant, scripting define symbols, Android signing from environment variables and App Bundles, plus hooks for project-specific build steps. Uses Addressables and Reporter when the project has them.",
+  "documentationUrl": "https://github.com/pzagora/Unity-Build/blob/main/README.md",
+  "changelogUrl": "https://github.com/pzagora/Unity-Build/blob/main/CHANGELOG.md",
+  "licensesUrl": "https://github.com/pzagora/Unity-Build/blob/main/LICENSE.md",
+  "author": {
+    "name": "Piotr Zagóra",
+    "email": "piotr@zagora.dev",
+    "url": "https://zagora.dev/"
+  },
+  "keywords": [
+    "unity",
+    "build",
+    "ci",
+    "command line",
+    "jenkins",
+    "zagora.dev"
+  ],
+  "dependencies": {}
+}

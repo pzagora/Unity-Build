@@ -1,0 +1,32 @@
+{
+    "name": "Build.Editor",
+    "rootNamespace": "Build",
+    "references": [
+        "Unity.Addressables",
+        "Unity.Addressables.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "UnityReporter.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.zagoradev.unity.reporter",
+            "expression": "",
+            "define": "PACKAGE_REPORTER"
+        },
+        {
+            "name": "com.unity.addressables",
+            "expression": "",
+            "define": "PACKAGE_ADDRESSABLES"
+        }
+    ],
+    "noEngineReferences": false
+}
