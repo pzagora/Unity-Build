@@ -44,9 +44,11 @@ Unity -batchmode -nographics -quit -projectPath . -buildTarget Android -logFile 
 | `-managedCodeVariant <Debug\|Checked\|Instrumented\|Release>` | Build, BuildAddressables | C# diagnostics (Unity 6.6+, `PlayerSettings.SetManagedCodeVariant`); ignored with a warning on older versions |
 | `-defines <A;B>` | all | Extra scripting define symbols for the active target, added to the project's own (`;`, `,` or spaces between them) |
 | `-buildAddressables` | Build | Build the Addressables content first. Without it, a project with Addressables must already have content built for the target. |
+| `-androidDebugSymbols <None\|SymbolTable\|Full>` | Build | Android debug symbols Unity writes next to the build (`*.symbols.zip`, for store crash reports) |
+| `-buildReport <path>` | Build | Writes a JSON summary of the build (target, result, size, duration, the 25 largest assets by packed size), also when the build fails |
 
 The settings are applied to the project's Player Settings in this order: defines, bundle version, build number, managed
-code variant, Android signing. A CI checkout should be reset between builds (`git checkout -f`), so they don't stick.
+code variant, Android signing and debug symbols. A CI checkout should be reset between builds (`git checkout -f`), so they don't stick.
 
 ### Android signing
 

@@ -2,6 +2,13 @@
 
 All notable changes to this package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package adheres to Semantic Versioning.
 
+## [1.1.0]
+
+### Added
+- `-androidDebugSymbols <None|SymbolTable|Full>`: Android debug symbols zip for store crash reports.
+- `-buildReport <path>`: JSON summary of the player build (target, result, size, duration, largest assets), written
+  whether or not the build succeeded.
+
 ## [1.0.0]
 
 ### Added

@@ -22,6 +22,8 @@ namespace Build
         public const string MANAGED_CODE_VARIANT_ARGUMENT = "-managedCodeVariant";
         public const string DEFINES_ARGUMENT = "-defines";
         public const string BUILD_ADDRESSABLES_ARGUMENT = "-buildAddressables";
+        public const string ANDROID_DEBUG_SYMBOLS_ARGUMENT = "-androidDebugSymbols";
+        public const string BUILD_REPORT_ARGUMENT = "-buildReport";
 
         private const string APP_BUNDLE_EXTENSION = ".aab";
         private const string VARIANT_SEPARATOR = ", ";
@@ -30,7 +32,7 @@ namespace Build
         /// <summary>
         /// Builds the player to <c>-outputPath</c> (an <c>.aab</c> path builds an Android App Bundle). Applies, in order:
         /// <c>-defines</c>, <c>-bundleVersion</c>, <c>-buildNumber</c>, <c>-managedCodeVariant</c>, Android signing from
-        /// environment variables, then builds the Addressables content with <c>-buildAddressables</c> (otherwise requires
+        /// environment variables and <c>-androidDebugSymbols</c>, then builds the Addressables content with <c>-buildAddressables</c> (otherwise requires
         /// existing content when the project uses Addressables), runs the build hooks and builds.
         /// </summary>
         public static void Build()
@@ -47,6 +49,7 @@ namespace Build
             if (target == BuildTarget.Android)
             {
                 AndroidSigning.Apply();
+                AndroidDebugSymbols.Apply(CommandLineArguments.Get(ANDROID_DEBUG_SYMBOLS_ARGUMENT));
                 EditorUserBuildSettings.buildAppBundle = outputPath.EndsWith(APP_BUNDLE_EXTENSION, StringComparison.OrdinalIgnoreCase);
             }
 
@@ -74,6 +77,8 @@ namespace Build
 
             foreach (var hook in hooks)
                 hook.AfterBuild(context, report);
+
+            BuildReportFile.Write(report, CommandLineArguments.Get(BUILD_REPORT_ARGUMENT));
 
             var summary = report.summary;
             if (summary.result != BuildResult.Succeeded)
