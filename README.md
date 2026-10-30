@@ -14,7 +14,7 @@ Add the zagora.dev registry and the package to `Packages/manifest.json`:
     { "name": "zagora.dev", "url": "https://upm.zagora.dev", "scopes": [ "com.zagoradev" ] }
   ],
   "dependencies": {
-    "com.zagoradev.unity.build": "1.0.0"
+    "com.zagoradev.unity.build": "1.1.1"
   }
 }
 ```
@@ -46,6 +46,9 @@ Unity -batchmode -nographics -quit -projectPath . -buildTarget Android -logFile 
 | `-buildAddressables` | Build | Build the Addressables content first. Without it, a project with Addressables must already have content built for the target. |
 | `-androidDebugSymbols <None\|SymbolTable\|Full>` | Build | Android debug symbols Unity writes next to the build (`*.symbols.zip`, for store crash reports) |
 | `-buildReport <path>` | Build | Writes a JSON summary of the build (target, result, size, duration, the 25 largest assets by packed size), also when the build fails |
+
+Passing `-buildNumber` without a value, with a non-number, or with a value below 1 fails the build before Unity changes
+the platform build numbers.
 
 The settings are applied to the project's Player Settings in this order: defines, bundle version, build number, managed
 code variant, Android signing and debug symbols. A CI checkout should be reset between builds (`git checkout -f`), so they don't stick.
@@ -96,3 +99,13 @@ succeeded or not. `context.Options` is what gets built and can be changed. `Comm
 - **Reporter** (`com.zagoradev.unity.reporter`) routes the build log through `Report` (version define `PACKAGE_REPORTER`).
   When Reporter is embedded under `Assets` instead of installed as a package, add `PACKAGE_REPORTER` to the project's
   scripting define symbols.
+
+## Tests
+
+Package-owned EditMode tests under `Tests/Editor` cover command-line parsing and build-number application, scripting
+defines, Android signing validation, build hook discovery/order/context and the Addressables-content prerequisite. Add
+`com.zagoradev.unity.build` to the project's `testables` array, then run them with Unity Test Framework:
+
+```bash
+Unity -batchmode -nographics -projectPath . -runTests -testPlatform EditMode -testResults TestResults.xml
+```

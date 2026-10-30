@@ -2,6 +2,16 @@
 
 All notable changes to this package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this package adheres to Semantic Versioning.
 
+## [1.1.1]
+
+### Added
+- Package-owned EditMode tests for command-line parsing and build-number propagation, scripting defines, Android
+  signing, build hook ordering/context and the Addressables-content prerequisite.
+
+### Fixed
+- `-buildNumber` now fails when present without a valid positive value (including `-1`) instead of being silently
+  ignored when the following token looked like another command-line flag.
+
 ## [1.1.0]
 
 ### Added

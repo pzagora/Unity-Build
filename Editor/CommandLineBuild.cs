@@ -126,7 +126,12 @@ namespace Build
         {
             var value = CommandLineArguments.Get(BUILD_NUMBER_ARGUMENT);
             if (string.IsNullOrEmpty(value))
+            {
+                if (CommandLineArguments.Has(BUILD_NUMBER_ARGUMENT))
+                    throw new ArgumentException($"{BUILD_NUMBER_ARGUMENT} must be followed by a positive whole number");
+
                 return null;
+            }
 
             if (!int.TryParse(value, out var buildNumber) || buildNumber <= 0)
                 throw new ArgumentException($"{BUILD_NUMBER_ARGUMENT} must be a positive whole number, got '{value}'");
